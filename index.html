@@ -221,10 +221,23 @@ const FIREBASE_CONFIG = {
 firebase.initializeApp(FIREBASE_CONFIG);
 const auth=firebase.auth();
 db=firebase.firestore();
+const AUTH_MSG={
+  "auth/unauthorized-domain":"This web address isn't on Firebase's approved list. In Firebase: Authentication → Settings → Authorized domains → add "+location.hostname+".",
+  "auth/operation-not-allowed":"Google sign-in is turned off. In Firebase: Authentication → Sign-in method → enable Google.",
+  "auth/configuration-not-found":"Authentication hasn't been set up yet. In Firebase: Authentication → Get started, then enable Google.",
+  "auth/popup-closed-by-user":"The sign-in window was closed before finishing. Try again.",
+  "auth/cancelled-popup-request":"Another sign-in window was already open. Try again.",
+  "auth/network-request-failed":"Couldn't reach Google. Check your internet connection and try again."};
+function showAuthErr(c){const msg=AUTH_MSG[c]||("Sign-in failed ("+c+").");
+  const el=$("#authErr");if(el)el.textContent=msg;else toast(msg)}
+auth.getRedirectResult().catch(e=>showAuthErr(e&&e.code||"unknown"));
 let unsub=null;
 function signedOut(msg){if(unsub){unsub();unsub=null}rows=[];loaded=true;canWrite=false;$("#addBtn").hidden=true;$("#signOut").hidden=true;
-  $("#body").innerHTML=`<tr class="empty"><td colspan="9">${msg}<br><br><button class="primary" id="signIn" type="button">Sign in with Google</button></td></tr>`;
-  $("#signIn").onclick=()=>auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>toast("Sign-in didn't finish. Try again."));
+  $("#body").innerHTML=`<tr class="empty"><td colspan="9">${msg}<br><br><button class="primary" id="signIn" type="button">Sign in with Google</button><div id="authErr" style="margin-top:12px;color:var(--bad);max-width:520px;margin-inline:auto"></div></td></tr>`;
+  $("#signIn").onclick=()=>{const prov=new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(prov).catch(e=>{const c=e&&e.code||"unknown";
+      if(c==="auth/popup-blocked"||c==="auth/operation-not-supported-in-this-environment"){auth.signInWithRedirect(prov).catch(e2=>showAuthErr(e2&&e2.code||"unknown"));return}
+      showAuthErr(c)})};
   $("#status").textContent="Staff only"}
 $("#signOut").onclick=()=>auth.signOut();
 auth.onAuthStateChanged(u=>{
