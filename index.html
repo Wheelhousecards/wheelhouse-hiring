@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wheelhouse Hiring Tracker</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one spreadsheet grid — names pinned left, stage columns across, add-row at the bottom */
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --head:#e9edf3; --line:#d3dae4;
+  --fg:#16202e; --muted:#5d6979; --accent:#1d4fa8; --accent-fg:#ffffff;
+  --ok:#1f7a4a; --ok-soft:#e1f2e8; --warn:#8f5500; --warn-soft:#fbefd9; --bad:#b3261e; --bad-soft:#f9e1df;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10151d; --surface:#18202b; --head:#212b38; --line:#2c3746;
+  --fg:#e6ebf2; --muted:#93a0b2; --accent:#7aa5f0; --accent-fg:#0c1424;
+  --ok:#6fcf97; --ok-soft:#173326; --warn:#f2b45a; --warn-soft:#3a2c14; --bad:#f28b82; --bad-soft:#3d1c1a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10151d; --surface:#18202b; --head:#212b38; --line:#2c3746;
+  --fg:#e6ebf2; --muted:#93a0b2; --accent:#7aa5f0; --accent-fg:#0c1424;
+  --ok:#6fcf97; --ok-soft:#173326; --warn:#f2b45a; --warn-soft:#3a2c14; --bad:#f28b82; --bad-soft:#3d1c1a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px}
+.wrap{max-width:1200px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;justify-content:space-between}
+h1{font-family:var(--display);font-size:32px;text-transform:uppercase;margin:0;line-height:1}
+.status{font-size:12px;color:var(--muted)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar input{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--fg);min-width:0;flex:0 1 240px}
+button{font:inherit;cursor:pointer;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:7px 12px}
+.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:600}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+.sheet{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:1240px}
+th,td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:0;height:38px;vertical-align:top}
+thead th{vertical-align:middle}
+th:last-child,td:last-child{border-right:0}
+thead th{background:var(--head);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;padding:0 10px;position:sticky;top:0;z-index:2}
+th.name,td.name{position:sticky;left:0;z-index:1;background:var(--surface);min-width:190px}
+thead th.name{z-index:3;background:var(--head)}
+td textarea{display:block;width:100%;min-height:38px;border:0;background:transparent;color:inherit;font:inherit;line-height:1.4;padding:9px 10px;resize:none;overflow:hidden;min-width:0;cursor:text}
+td textarea:focus{background:var(--surface);box-shadow:inset 0 0 0 2px var(--accent);outline:none}
+th{min-width:150px}
+td.name textarea{font-weight:600}
+td.st textarea{font-weight:500}
+td.ok{background:var(--ok-soft)} td.ok textarea{color:var(--ok)}
+td.live{background:var(--warn-soft)} td.live textarea{color:var(--warn)}
+td.bad{background:var(--bad-soft)} td.bad textarea{color:var(--bad)}
+td.notes{min-width:260px}
+td.x{width:84px;text-align:center}
+td.x button{border:0;background:none;color:var(--muted);padding:4px 8px;font-size:12.5px}
+td.x button.confirm{color:var(--bad);font-weight:600}
+tr.hiredrow td.name{box-shadow:inset 3px 0 0 var(--ok)}
+.empty td{padding:22px;text-align:center;color:var(--muted);height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+td.pk{position:relative}
+td.pk textarea{padding-right:30px}
+.pick{position:absolute;right:3px;top:5px;width:26px;height:28px;padding:0;border:0;border-radius:5px;background:transparent;color:var(--muted);font-size:12px}
+.pick:hover{background:var(--head);color:var(--fg)}
+#menu{position:fixed;z-index:50;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(10,15,25,.18);padding:4px;min-width:170px;display:grid}
+#menu button{border:0;text-align:left;padding:8px 10px;border-radius:5px;background:transparent;display:flex;align-items:center;gap:8px}
+#menu button:hover,#menu button:focus-visible{background:var(--head);outline:none}
+#menu .dot{width:9px;height:9px;border-radius:2px;background:var(--line)}
+#menu .dot.ok{background:var(--ok)} #menu .dot.live{background:var(--warn)} #menu .dot.bad{background:var(--bad)}
+#menu .clr{color:var(--muted);border-top:1px solid var(--line);border-radius:0 0 5px 5px;margin-top:2px}
+td.lock textarea{cursor:pointer}
+#menu .hint{margin-left:auto;font-size:11px;color:var(--muted)}
+.mform{display:grid;gap:10px;padding:8px;min-width:210px}
+.mform label{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+.mform input,.mform select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.mrow{display:flex;gap:6px;justify-content:flex-end}
+#menu .mrow button{padding:6px 12px;border:1px solid var(--line)}
+#menu .mrow button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:8px;z-index:40;font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div><h1>Hiring Tracker</h1><div class="status" id="status">Connecting…</div></div>
+    <div class="bar">
+      <input id="q" type="search" placeholder="Search" aria-label="Search">
+      <button class="primary" id="addBtn" hidden>+ Add person</button>
+      <button id="signOut" hidden>Sign out</button>
+    </div>
+  </header>
+
+  <div class="sheet">
+    <table>
+      <thead><tr>
+        <th class="name">Name</th><th>Position</th><th>Interviewed</th><th>Audition</th><th>Background Check</th><th>Contract</th><th>Hired</th><th>Notes</th><th></th>
+      </tr></thead>
+      <tbody id="body"><tr class="empty"><td colspan="9">Loading…</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="legend">
+    <span style="--c:var(--ok-soft)">Done (Yes, Pass, Cleared, Signed)</span>
+    <span style="--c:var(--warn-soft)">In progress (Scheduled, Running, Sent, Pending)</span>
+    <span style="--c:var(--bad-soft)">Problem (No, No-show, Failed)</span>
+  </div>
+</div>
+
+<div id="menu" hidden role="menu"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const COLS=[["position","",""],["interviewed","st","Yes / Scheduled 11/5 / No-show"],["audition","st","Choose…"],["background","st","Choose…"],["contract","st","Choose…"],["hired","st","Choose…"],["notes","notes",""]];
+const CHOICES={interviewed:[{v:"Yes"},{v:"Scheduled"},{v:"No-show"}],
+  audition:[{v:"Pass"},{v:"Scheduled",date:1,loc:1},{v:"Failed"}],
+  background:[{v:"Cleared"},{v:"Running"},{v:"Failed"}],
+  contract:[{v:"Signed",date:1},{v:"Sent",date:1}],
+  hired:[{v:"Yes",date:1},{v:"No"},{v:"Pending"}]};
+const LOCKED={audition:1,background:1,contract:1,hired:1};
+const LOCS=["Wayne","West Chester","Ardmore","Philly","Break rooms"];
+const md=d=>{const[y,m,dd]=d.split("-");return +m+"/"+(+dd)};
+let db=null,canWrite=true,rows=[],loaded=false,armed=null;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function toast(t){const el=document.createElement("div");el.className="toast";el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),2600)}
+function tone(v){v=(v||"").trim().toLowerCase();if(!v||v==="n/a")return"";
+  if(/^(no\b|no-show|noshow|fail|flag|declin|didn)/.test(v))return"bad";
+  if(/^(yes|done|pass|clear|sign|hired|complete|y\b)/.test(v))return"ok";
+  return"live"}
+
+function render(){
+  const q=$("#q").value.trim().toLowerCase();
+  const list=rows.filter(r=>!q||[r.name,...COLS.map(c=>r[c[0]])].join(" ").toLowerCase().includes(q));
+  const body=$("#body");
+  if(!loaded){body.innerHTML=`<tr class="empty"><td colspan="9">Loading…</td></tr>`;return}
+  if(!rows.length){body.innerHTML=`<tr class="empty"><td colspan="9">No one yet. Click <b>+ Add person</b> to start a row.</td></tr>`;return}
+  if(!list.length){body.innerHTML=`<tr class="empty"><td colspan="9">Nobody matches that search.</td></tr>`;return}
+  // keep focused cell intact: rebuild rows but restore focus/value
+  const act=document.activeElement,aid=act&&act.id,aval=act&&act.value,ss=act&&act.selectionStart;
+  body.innerHTML=list.map(r=>`<tr data-id="${r.id}" class="${tone(r.hired)==="ok"?"hiredrow":""}">
+    <td class="name"><textarea rows="1" id="c-${r.id}-name" data-f="name" placeholder="Name" aria-label="Name"${canWrite?"":" readonly"}>${esc(r.name)}</textarea></td>
+    ${COLS.map(([f,cls,ph])=>`<td class="${cls} ${CHOICES[f]?"pk":""} ${LOCKED[f]?"lock":""} ${cls==="st"?tone(r[f]):""}"><textarea rows="1" id="c-${r.id}-${f}" data-f="${f}"${ph?` placeholder="${esc(ph)}"`:""} aria-label="${f}"${canWrite&&!LOCKED[f]?"":" readonly"}>${esc(r[f])}</textarea>${CHOICES[f]&&canWrite?`<button type="button" class="pick" data-pick="${f}" aria-label="Choose ${f}">▾</button>`:""}</td>`).join("")}
+    <td class="x">${canWrite?`<button type="button" class="${armed===r.id?"confirm":""}" data-del="${r.id}">${armed===r.id?"Confirm?":"Delete"}</button>`:""}</td></tr>`).join("");
+  body.querySelectorAll("textarea").forEach(fit);
+  if(aid){const el=document.getElementById(aid);if(el){el.value=aval;el.focus();fit(el);try{el.setSelectionRange(ss,ss)}catch(e){}}}
+}
+$("#q").addEventListener("input",render);
+
+/* live tint while typing */
+function fit(el){el.style.height="auto";el.style.height=el.scrollHeight+"px"}
+$("#body").addEventListener("input",e=>{if(e.target.tagName==="TEXTAREA")fit(e.target);const td=e.target.closest("td.st");if(td)td.className="st "+tone(e.target.value)});
+/* save on leaving a cell or pressing Enter */
+$("#body").addEventListener("change",e=>{const f=e.target.dataset.f;if(!f)return;const id=e.target.closest("tr").dataset.id;const r=rows.find(x=>x.id===id);const v=e.target.value.trim();if(r&&(r[f]||"")===v)return;if(r)r[f]=v;patch(id,{[f]:v});if(f==="hired")render()});
+$("#body").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.tagName==="TEXTAREA"&&!e.shiftKey){e.preventDefault();const td=e.target.closest("td"),tr=td.closest("tr"),i=[...tr.children].indexOf(td),nx=tr.nextElementSibling;e.target.blur();const t=nx&&nx.children[i]&&nx.children[i].querySelector("textarea");if(t)t.focus()}});
+/* dropdown menu */
+let menuFor=null;
+function setCell(id,f,v){const r=rows.find(x=>x.id===id);if(r)r[f]=v;patch(id,{[f]:v});render()}
+function closeMenu(){$("#menu").hidden=true;menuFor=null}
+function openMenu(btn){
+  const tr=btn.closest("tr"),id=tr.dataset.id,f=btn.dataset.pick;
+  if(menuFor&&menuFor.id===id&&menuFor.f===f){closeMenu();return}
+  menuFor={id,f};const m=$("#menu");
+  menuFor.rect=btn.getBoundingClientRect();menuList();
+}
+function place(){const m=$("#menu"),b=menuFor.rect,mh=m.offsetHeight,mw=m.offsetWidth;
+  let top=b.bottom+4;if(top+mh>innerHeight-8)top=Math.max(8,b.top-mh-4);
+  m.style.top=top+"px";m.style.left=Math.max(8,Math.min(b.right-mw,innerWidth-mw-8))+"px"}
+function menuList(){const m=$("#menu"),f=menuFor.f;
+  m.innerHTML=CHOICES[f].map((o,i)=>`<button type="button" data-i="${i}"><span class="dot ${tone(o.v)}"></span>${esc(o.v)}${o.date?`<span class="hint">${o.loc?"date + location":"+ date"}</span>`:""}</button>`).join("")+`<button type="button" class="clr" data-clear>Clear</button>`;
+  m.hidden=false;place();m.querySelector("button").focus()}
+function menuForm(o){const m=$("#menu"),t=new Date(),iso=new Date(t.getTime()-t.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+  m.innerHTML=`<form class="mform" id="mform"><strong>${esc(o.v)}</strong>
+    ${o.date?`<label>Date<input type="date" id="mDate" value="${iso}" required></label>`:""}
+    ${o.loc?`<label>Location<select id="mLoc">${LOCS.map(l=>`<option>${esc(l)}</option>`).join("")}</select></label>`:""}
+    <div class="mrow"><button type="button" data-back>Back</button><button type="submit" class="primary">Save</button></div></form>`;
+  place();$("#mDate")&&$("#mDate").focus();
+  $("#mform").addEventListener("submit",e=>{e.preventDefault();const d=$("#mDate")&&$("#mDate").value;if(o.date&&!d)return;
+    let v=o.v+(d?" "+md(d):"")+(o.loc?" – "+$("#mLoc").value:"");const{id,f}=menuFor;closeMenu();setCell(id,f,v)})}
+$("#menu").addEventListener("click",e=>{if(!menuFor)return;const b=e.target.closest("button");if(!b)return;
+  if(b.hasAttribute("data-back")){menuList();return}
+  if(b.hasAttribute("data-clear")){const{id,f}=menuFor;closeMenu();setCell(id,f,"");return}
+  if(b.dataset.i!=null){const o=CHOICES[menuFor.f][+b.dataset.i];if(o.date||o.loc){menuForm(o);return}const{id,f}=menuFor;closeMenu();setCell(id,f,o.v)}});
+document.addEventListener("mousedown",e=>{if(!$("#menu").hidden&&!e.target.closest("#menu")&&!e.target.closest(".pick")&&!e.target.closest("td.lock"))closeMenu()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMenu()});
+document.querySelector(".sheet").addEventListener("scroll",closeMenu);
+window.addEventListener("scroll",closeMenu,{passive:true});
+/* delete with in-row confirm */
+$("#body").addEventListener("click",async e=>{const lk=e.target.closest("td.lock");const p=e.target.closest("[data-pick]")||(lk&&lk.querySelector("[data-pick]"));if(p){openMenu(p);return}const b=e.target.closest("[data-del]");if(!b)return;const id=b.dataset.del;
+  if(armed!==id){armed=id;render();setTimeout(()=>{if(armed===id){armed=null;render()}},4000);return}
+  armed=null;const nm=(rows.find(r=>r.id===id)||{}).name;
+  try{await db.doc("candidates/"+id).delete();toast("Deleted "+(nm||"row"))}catch(err){toast("Couldn't delete. Check your connection and try again.")}});
+
+const queues={};
+function patch(id,obj){if(!canWrite||!db)return;const q=queues[id]||(queues[id]={p:{},run:false});Object.assign(q.p,obj);flush(id)}
+async function flush(id){const q=queues[id];if(q.run)return;q.run=true;
+  while(Object.keys(q.p).length){const p=q.p;q.p={};p.updatedAt=Date.now();
+    try{await db.doc("candidates/"+id).update(p)}catch(e){if(e&&e.code==="permission-denied"){toast("You don't have access to change this tracker.")}else toast("Couldn't save. Check your connection and try again.")}}
+  q.run=false}
+
+$("#addBtn").addEventListener("click",async()=>{
+  if(!canWrite||!db)return;
+  const ref=db.collection("candidates").doc();
+  const doc={name:"",position:"",interviewed:"",audition:"",background:"",contract:"",hired:"",notes:"",createdAt:Date.now(),updatedAt:Date.now()};
+  try{rows.push({id:ref.id,...doc});$("#q").value="";render();const el=document.getElementById("c-"+ref.id+"-name");if(el)el.focus();await ref.set(doc)}
+  catch(e){toast(e&&e.code==="quota_exceeded"?"The tracker is full. Delete old rows to make room.":"Couldn't add a row. Check your connection and try again.")}
+});
+
+/* ===== Firebase setup — paste your project's web config here ===== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCg5Yd6rSmFPTDvfoJ4b2YU4AocbGePeOw",
+  authDomain: "wheelhouse-hiring-tracker.firebaseapp.com",
+  projectId: "wheelhouse-hiring-tracker",
+  storageBucket: "wheelhouse-hiring-tracker.firebasestorage.app",
+  messagingSenderId: "513907998380",
+  appId: "1:513907998380:web:7b9eded8401ce38e08a909"
+};
+/* ================================================================= */
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth=firebase.auth();
+db=firebase.firestore();
+let unsub=null;
+function signedOut(msg){if(unsub){unsub();unsub=null}rows=[];loaded=true;canWrite=false;$("#addBtn").hidden=true;$("#signOut").hidden=true;
+  $("#body").innerHTML=`<tr class="empty"><td colspan="9">${msg}<br><br><button class="primary" id="signIn" type="button">Sign in with Google</button></td></tr>`;
+  $("#signIn").onclick=()=>auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>toast("Sign-in didn't finish. Try again."));
+  $("#status").textContent="Staff only"}
+$("#signOut").onclick=()=>auth.signOut();
+auth.onAuthStateChanged(u=>{
+  if(!u){signedOut("Sign in with your Wheelhouse Google account to see the hiring tracker.");return}
+  canWrite=true;$("#addBtn").hidden=false;$("#signOut").hidden=false;loaded=false;render();
+  $("#status").textContent="Loading…";
+  unsub=db.collection("candidates").orderBy("createdAt").onSnapshot(snap=>{
+    rows=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(!snap.metadata.fromCache)$("#status").textContent=rows.length+(rows.length===1?" person":" people")+" · saves automatically · "+u.email;
+    loaded=true;render();
+  },err=>{if(err&&err.code==="permission-denied")signedOut(u.email+" isn't on the staff list for this tracker. Ask JT to add you, or sign in with a different account.");
+    else{loaded=true;$("#status").textContent="Lost connection. Reload to reconnect.";render()}});
+});
+</script>
+
+</body>
+</html>
