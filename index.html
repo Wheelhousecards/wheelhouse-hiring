@@ -4,54 +4,60 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Wheelhouse Hiring Tracker</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="icon" href="https://wheelhousecards.com/wp-content/uploads/2026/09/cropped-WEBICON-270x270.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
 <style>
-/* Layout: one spreadsheet grid — names pinned left, stage columns across, add-row at the bottom */
+/* Wheelhouse brand: Built Titling headings, Wheelhouse blue + gold, black text. Light theme to match wheelhousecards.com */
+@font-face{font-family:"BuiltTitling";src:url("fonts/BuiltTitlingRg-Regular-400.ttf") format("truetype"),url("https://wheelhousecards.com/wp-content/uploads/2023/11/BuiltTitlingRg-Regular-400.ttf") format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:"BuiltTitling";src:url("fonts/built_titling_sb.ttf") format("truetype"),url("https://wheelhousecards.com/wp-content/uploads/2023/11/built_titling_sb.ttf") format("truetype");font-weight:600;font-display:swap}
+@font-face{font-family:"BuiltTitling";src:url("fonts/BuiltTitlingRg-Bold-700.ttf") format("truetype"),url("https://wheelhousecards.com/wp-content/uploads/2023/11/BuiltTitlingRg-Bold-700.ttf") format("truetype");font-weight:700;font-display:swap}
 :root{
-  --bg:#f3f5f8; --surface:#ffffff; --head:#e9edf3; --line:#d3dae4;
-  --fg:#16202e; --muted:#5d6979; --accent:#1d4fa8; --accent-fg:#ffffff;
-  --ok:#1f7a4a; --ok-soft:#e1f2e8; --warn:#8f5500; --warn-soft:#fbefd9; --bad:#b3261e; --bad-soft:#f9e1df;
-  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
-  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --blue:#4472C3; --blue-dk:#2f5aa3; --gold:#D79431; --black:#000000;
+  --bg:#f5f6f8; --surface:#ffffff; --head:#000000; --head-fg:#ffffff; --line:#d9dde4; --hover:#eef1f6;
+  --fg:#111111; --muted:#5f6670; --accent:var(--blue); --accent-fg:#ffffff;
+  --ok:#1f7a4a; --ok-soft:#e1f2e8; --warn:#8a5200; --warn-soft:#fbefd9; --bad:#b3261e; --bad-soft:#f9e1df;
+  --display:"BuiltTitling","Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#10151d; --surface:#18202b; --head:#212b38; --line:#2c3746;
-  --fg:#e6ebf2; --muted:#93a0b2; --accent:#7aa5f0; --accent-fg:#0c1424;
-  --ok:#6fcf97; --ok-soft:#173326; --warn:#f2b45a; --warn-soft:#3a2c14; --bad:#f28b82; --bad-soft:#3d1c1a; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#10151d; --surface:#18202b; --head:#212b38; --line:#2c3746;
-  --fg:#e6ebf2; --muted:#93a0b2; --accent:#7aa5f0; --accent-fg:#0c1424;
-  --ok:#6fcf97; --ok-soft:#173326; --warn:#f2b45a; --warn-soft:#3a2c14; --bad:#f28b82; --bad-soft:#3d1c1a; color-scheme:dark}
+[hidden]{display:none!important}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px}
-.wrap{max-width:1200px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;margin:0}
+.brand{background:var(--surface);border-bottom:4px solid var(--gold);box-shadow:0 1px 0 var(--line)}
+.brand-in{max-width:1500px;margin:0 auto;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:14px}
+.brand img{height:48px;width:auto;max-width:60vw;display:block}
+.brand .tag{font-family:var(--display);color:var(--black);border-left:2px solid var(--blue);padding-left:14px;font-size:15px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.wrap{max-width:1500px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
 header{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;justify-content:space-between}
-h1{font-family:var(--display);font-size:32px;text-transform:uppercase;margin:0;line-height:1}
+h1{font-family:var(--display);font-weight:700;font-size:38px;text-transform:uppercase;letter-spacing:.02em;margin:0;line-height:1;color:var(--black)}
+h1 span{color:var(--blue)}
 .status{font-size:12px;color:var(--muted)}
 .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .bar input{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--fg);min-width:0;flex:0 1 240px}
 button{font:inherit;cursor:pointer;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:7px 12px}
-.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:600}
+.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:600;font-family:var(--display);letter-spacing:.06em;text-transform:uppercase;font-size:15px}
+.primary:hover{background:var(--blue-dk);border-color:var(--blue-dk)}
 button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 
-.sheet{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
-table{border-collapse:separate;border-spacing:0;width:100%;min-width:1240px}
+.sheet{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface);border-top:3px solid var(--blue)}
+table{border-collapse:separate;border-spacing:0;width:100%;table-layout:fixed}
+@media (max-width:900px){table{min-width:900px}}
 th,td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:0;height:38px;vertical-align:top}
 thead th{vertical-align:middle}
 th:last-child,td:last-child{border-right:0}
-thead th{background:var(--head);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;padding:0 10px;position:sticky;top:0;z-index:2}
-th.name,td.name{position:sticky;left:0;z-index:1;background:var(--surface);min-width:190px}
+thead th{background:var(--head);font-family:var(--display);font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--head-fg);text-align:left;padding:8px 10px;line-height:1.1;position:sticky;top:0;z-index:2;border-right-color:#333}
+th.name,td.name{position:sticky;left:0;z-index:1;background:var(--surface)}
 thead th.name{z-index:3;background:var(--head)}
 td textarea{display:block;width:100%;min-height:38px;border:0;background:transparent;color:inherit;font:inherit;line-height:1.4;padding:9px 10px;resize:none;overflow:hidden;min-width:0;cursor:text}
 td textarea:focus{background:var(--surface);box-shadow:inset 0 0 0 2px var(--accent);outline:none}
-th{min-width:150px}
+col.c-name{width:13%} col.c-pos{width:11%} col.c-st{width:10.5%} col.c-notes{width:auto} col.c-x{width:70px}
 td.name textarea{font-weight:600}
 td.st textarea{font-weight:500}
 td.ok{background:var(--ok-soft)} td.ok textarea{color:var(--ok)}
 td.live{background:var(--warn-soft)} td.live textarea{color:var(--warn)}
 td.bad{background:var(--bad-soft)} td.bad textarea{color:var(--bad)}
-td.notes{min-width:260px}
-td.x{width:84px;text-align:center}
+
+td.x{text-align:center}
 td.x button{border:0;background:none;color:var(--muted);padding:4px 8px;font-size:12.5px}
 td.x button.confirm{color:var(--bad);font-weight:600}
 tr.hiredrow td.name{box-shadow:inset 3px 0 0 var(--ok)}
@@ -61,10 +67,10 @@ tr.hiredrow td.name{box-shadow:inset 3px 0 0 var(--ok)}
 td.pk{position:relative}
 td.pk textarea{padding-right:30px}
 .pick{position:absolute;right:3px;top:5px;width:26px;height:28px;padding:0;border:0;border-radius:5px;background:transparent;color:var(--muted);font-size:12px}
-.pick:hover{background:var(--head);color:var(--fg)}
+.pick:hover{background:var(--hover);color:var(--fg)}
 #menu{position:fixed;z-index:50;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(10,15,25,.18);padding:4px;min-width:170px;display:grid}
 #menu button{border:0;text-align:left;padding:8px 10px;border-radius:5px;background:transparent;display:flex;align-items:center;gap:8px}
-#menu button:hover,#menu button:focus-visible{background:var(--head);outline:none}
+#menu button:hover,#menu button:focus-visible{background:var(--hover);outline:none}
 #menu .dot{width:9px;height:9px;border-radius:2px;background:var(--line)}
 #menu .dot.ok{background:var(--ok)} #menu .dot.live{background:var(--warn)} #menu .dot.bad{background:var(--bad)}
 #menu .clr{color:var(--muted);border-top:1px solid var(--line);border-radius:0 0 5px 5px;margin-top:2px}
@@ -81,9 +87,13 @@ td.lock textarea{cursor:pointer}
 </head>
 <body>
 
+<div class="brand"><div class="brand-in">
+  <img src="https://wheelhousecards.com/wp-content/uploads/2023/11/unnamed-3-removebg-preview.png" alt="Wheelhouse">
+  <span class="tag">Staff Tools</span>
+</div></div>
 <div class="wrap">
   <header>
-    <div><h1>Hiring Tracker</h1><div class="status" id="status">Connecting…</div></div>
+    <div><h1>Hiring <span>Tracker</span></h1><div class="status" id="status">Connecting…</div></div>
     <div class="bar">
       <input id="q" type="search" placeholder="Search" aria-label="Search">
       <button class="primary" id="addBtn" hidden>+ Add person</button>
@@ -93,6 +103,7 @@ td.lock textarea{cursor:pointer}
 
   <div class="sheet">
     <table>
+      <colgroup><col class="c-name"><col class="c-pos"><col class="c-st"><col class="c-st"><col class="c-st"><col class="c-st"><col class="c-st"><col class="c-notes"><col class="c-x"></colgroup>
       <thead><tr>
         <th class="name">Name</th><th>Position</th><th>Interviewed</th><th>Audition</th><th>Background Check</th><th>Contract</th><th>Hired</th><th>Notes</th><th></th>
       </tr></thead>
