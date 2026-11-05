@@ -147,7 +147,7 @@ function render(){
   const list=rows.filter(r=>!q||[r.name,...COLS.map(c=>r[c[0]])].join(" ").toLowerCase().includes(q));
   const body=$("#body");
   if(!loaded){body.innerHTML=`<tr class="empty"><td colspan="9">Loading…</td></tr>`;return}
-  if(!rows.length){body.innerHTML=`<tr class="empty"><td colspan="9">No one yet. Click <b>+ Add person</b> to start a row.</td></tr>`;return}
+  if(!rows.length){body.innerHTML=`<tr class="empty"><td colspan="9">No one yet. Click <b>+ Add person</b> to start a row.${canWrite?'<br><br><button type="button" id="addEx">Add 2 examples</button>':''}</td></tr>`;const ex=$("#addEx");if(ex)ex.onclick=addExamples;return}
   if(!list.length){body.innerHTML=`<tr class="empty"><td colspan="9">Nobody matches that search.</td></tr>`;return}
   // keep focused cell intact: rebuild rows but restore focus/value
   const act=document.activeElement,aid=act&&act.id,aval=act&&act.value,ss=act&&act.selectionStart;
@@ -211,6 +211,11 @@ async function flush(id){const q=queues[id];if(q.run)return;q.run=true;
     try{await db.doc("candidates/"+id).update(p)}catch(e){if(e&&e.code==="permission-denied"){toast("You don't have access to change this tracker.")}else toast("Couldn't save. Check your connection and try again.")}}
   q.run=false}
 
+async function addExamples(){if(!canWrite||!db)return;const t=Date.now();
+  const ex=[{name:"Example – Sam Rivera",position:"Breaker",interviewed:"Yes – JT 10/28",audition:"Pass",background:"Cleared",contract:"Signed 10/30",hired:"Yes 11/10",notes:"EXAMPLE ROW, delete when ready. Strong on camera, knows Topps Chrome."},
+            {name:"Example – Dana Kim",position:"Sales Associate",interviewed:"Yes – Store mgr 11/1",audition:"Scheduled 11/7 – Ardmore",background:"Running",contract:"Sent 11/2",hired:"Pending",notes:"EXAMPLE ROW, delete when ready. Available weekends + Tues/Thurs."}];
+  try{for(let i=0;i<ex.length;i++)await db.collection("candidates").doc().set({...ex[i],createdAt:t+i,updatedAt:t+i});toast("Added 2 example rows")}
+  catch(e){toast("Couldn't add examples. Check that you're signed in with a staff account.")}}
 $("#addBtn").addEventListener("click",async()=>{
   if(!canWrite||!db)return;
   const ref=db.collection("candidates").doc();
